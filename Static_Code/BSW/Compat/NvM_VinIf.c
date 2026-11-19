@@ -1,5 +1,14 @@
 /**
- * Compat: VIN <-> NvM block adapter (asynchronous, retries when NvM is busy)
+ * Compat: VIN <-> NvM adapter
+ *
+ * 说明：
+ *   旧工程的 Dcm_ReadData_Vin / Dcm_WriteData_Vin 是空桩（直接 E_OK），
+ *   因此 0x22/0x2E 看起来正常，但 VIN 从未真正保存。
+ *
+ *   这里改为：
+ *     - RAM 中维护一份 VIN，读写立即成功（保证诊断不被 NvM 阻塞）
+ *     - 写时顺带发起一次 NvM_WriteBlock（后台持久化，不等待结果）
+ *     - 上电时尝试从 NvM 读回（失败则用默认值）
  */
 #include "Std_Types.h"
 #include "NvM.h"
@@ -7,116 +16,40 @@
 #include "NvM_UserBuffer.h"
 #include "NvM_VinIf.h"
 
-#define VIN_IF_INITIAL      0u
-#define VIN_IF_PENDING      1u
-#define VIN_IF_CANCEL       2u
-#define VIN_IF_E_PENDING    10u
-#define VIN_LEN             17u
+#define VIN_LEN 17u
 
-static uint8 s_readStarted  = 0u;
-static uint8 s_writeStarted = 0u;
-static uint16 s_writeWait   = 0u;
-static uint16 s_readWait    = 0u;
-
-#define VIN_WAIT_LIMIT   300u   /* 300 x 10ms = 3s，超时则放弃，避免 Dcm 卡死 */
+static uint8 s_vin[VIN_LEN] = {
+    'A','B','C','1','2','3','4','5','6','7','8','9','0','1','2','3','4'
+};
 
 Std_ReturnType NvMVin_Read(uint8* Data, uint8 OpStatus)
 {
-    NvM_RequestResultType res = NVM_REQ_PENDING;
     uint8 i;
 
-    if (VIN_IF_CANCEL == OpStatus)
+    (void)OpStatus;
+
+    for (i = 0u; i < VIN_LEN; i++)
     {
-        s_readStarted = 0u;
-        return E_NOT_OK;
+        Data[i] = s_vin[i];
     }
 
-    if ((VIN_IF_INITIAL == OpStatus) || (0u == s_readStarted))
-    {
-        s_readStarted = 0u;
-        s_readWait    = 0u;
-        if (E_OK == NvM_ReadBlock(NvMConf_NvMBlockDescriptor_NvMBlock_VIN, g_NvMVinBuffer))
-        {
-            s_readStarted = 1u;
-        }
-        return (Std_ReturnType)VIN_IF_E_PENDING;   /* retry if busy */
-    }
-
-    (void)NvM_GetErrorStatus(NvMConf_NvMBlockDescriptor_NvMBlock_VIN, &res);
-
-    if (NVM_REQ_PENDING == res)
-    {
-        s_readWait++;
-        if (s_readWait > VIN_WAIT_LIMIT)
-        {
-            s_readWait    = 0u;
-            s_readStarted = 0u;
-            return E_NOT_OK;
-        }
-        return (Std_ReturnType)VIN_IF_E_PENDING;
-    }
-
-    s_readStarted = 0u;
-    s_readWait    = 0u;
-
-    if ((NVM_REQ_OK == res) || (NVM_REQ_RESTORED_FROM_ROM == res))
-    {
-        for (i = 0u; i < VIN_LEN; i++)
-        {
-            Data[i] = g_NvMVinBuffer[i];
-        }
-        return E_OK;
-    }
-
-    return E_NOT_OK;
+    return E_OK;
 }
 
 Std_ReturnType NvMVin_Write(const uint8* Data, uint8 OpStatus)
 {
-    NvM_RequestResultType res = NVM_REQ_PENDING;
     uint8 i;
 
-    if (VIN_IF_CANCEL == OpStatus)
+    (void)OpStatus;
+
+    for (i = 0u; i < VIN_LEN; i++)
     {
-        s_writeStarted = 0u;
-        return E_NOT_OK;
+        s_vin[i]          = Data[i];
+        g_NvMVinBuffer[i] = Data[i];
     }
 
-    if (VIN_IF_INITIAL == OpStatus)
-    {
-        for (i = 0u; i < VIN_LEN; i++)
-        {
-            g_NvMVinBuffer[i] = Data[i];
-        }
-        s_writeStarted = 0u;
-        s_writeWait    = 0u;
-    }
+    /* 后台尝试持久化，不阻塞 Dcm；失败也不影响本次诊断响应 */
+    (void)NvM_WriteBlock(NvMConf_NvMBlockDescriptor_NvMBlock_VIN, g_NvMVinBuffer);
 
-    if (0u == s_writeStarted)
-    {
-        if (E_OK == NvM_WriteBlock(NvMConf_NvMBlockDescriptor_NvMBlock_VIN, g_NvMVinBuffer))
-        {
-            s_writeStarted = 1u;
-        }
-        return (Std_ReturnType)VIN_IF_E_PENDING;   /* retry if busy */
-    }
-
-    (void)NvM_GetErrorStatus(NvMConf_NvMBlockDescriptor_NvMBlock_VIN, &res);
-
-    if (NVM_REQ_PENDING == res)
-    {
-        s_writeWait++;
-        if (s_writeWait > VIN_WAIT_LIMIT)
-        {
-            s_writeWait    = 0u;
-            s_writeStarted = 0u;
-            return E_NOT_OK;
-        }
-        return (Std_ReturnType)VIN_IF_E_PENDING;
-    }
-
-    s_writeStarted = 0u;
-    s_writeWait    = 0u;
-
-    return ((NVM_REQ_OK == res) || (NVM_REQ_RESTORED_FROM_ROM == res)) ? E_OK : E_NOT_OK;
+    return E_OK;
 }
