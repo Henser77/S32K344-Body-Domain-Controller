@@ -54,7 +54,9 @@
 #include "Mem_43_INFLS.h"
 #include "MemAcc.h"
 #include "Fee.h"
+#include "MemIf.h"
 #include "NvM.h"
+#include "NvM_Cfg.h"
 
 extern const CanIf_ConfigType CanIf_Config;
 /** DO NOT CHANGE THIS COMMENT!
@@ -196,31 +198,64 @@ void EcuM_AL_DriverInitOne(void)
     /** DO NOT CHANGE THIS COMMENT!
     * <USERBLOCK EcuM_AL_DriverInitOne Other>
     */
-    /* ---- CAN 驱动 ---- */
-    Can_43_FLEXCAN_Init(&Can_43_FLEXCAN_Config);
-
-    /* ---- 通信栈 ---- */
-    CanIf_Init(&CanIf_Config);
-    PduR_Init(&PduR_Config);
-    Com_Init(&Com_Config);
-    CanTp_Init(&CanTp_Config);
-
-    /* ---- 存储栈 ---- */
+    /* ---- 存储栈：Mem -> MemAcc -> Fee，并等待 Fee 就绪 ---- */
     Mem_43_INFLS_Init(&Mem_43_INFLS_Config);
     MemAcc_Init(&MemAcc_Config);
     Fee_Init(&Fee_Config);
+    {
+        uint32 w;
+        for (w = 0U; w < 1000000U; w++)
+        {
+            Fee_MainFunction();
+            MemAcc_MainFunction();
+            Mem_43_INFLS_MainFunction();
+            if ((w > 10000U) && (MEMIF_IDLE == Fee_GetStatus()))
+            {
+                break;
+            }
+        }
+    }
+
+    /* ---- NvM：初始化并完成 ReadAll ---- */
     NvM_Init(NULL_PTR);
+    (void)NvM_ReadAll();
+    {
+        uint32 w;
+        NvM_RequestResultType rs = NVM_REQ_PENDING;
+        for (w = 0U; w < 2000000U; w++)
+        {
+            NvM_MainFunction();
+            Fee_MainFunction();
+            MemAcc_MainFunction();
+            Mem_43_INFLS_MainFunction();
+            if (w > 1000U)
+            {
+                (void)NvM_GetErrorStatus(NvMConf_NvMBlockDescriptor_NvMBlock_Primary_0, &rs);
+                if (NVM_REQ_PENDING != rs)
+                {
+                    break;
+                }
+            }
+        }
+    }
 
-    /* ---- 诊断 ---- */
+    /* ---- Dem ---- */
+    Dem_PreInit(&Dem_Config);
     Dem_Init(&Dem_Config);
-    Dcm_Init(&Dcm_Config);
+    (void)Dem_RestartOperationCycle((uint8)DemConf_DemOperationCycle_DemOperationCycle);
 
-    /* ---- 模式管理 / 网络管理 ---- */
-    Tm_Init(&Tm_Config);
+    /* ---- CAN 驱动与通信栈 ---- */
+    Can_43_FLEXCAN_Init(&Can_43_FLEXCAN_Config);
+    CanIf_Init(&CanIf_Config);
     CanSM_Init(&CanSM_Config);
+    PduR_Init(&PduR_Config);
+    Com_Init(&Com_Config);
+    CanTp_Init(&CanTp_Config);
     ComM_Init(&ComM_Config);
     Nm_Init(&Nm_Config);
     CanNm_Init(&CanNm_Config);
+    Tm_Init(&Tm_Config);
+    Dcm_Init(&Dcm_Config);
 
     /* 调度器启动前请求通信，避免 CanNm 先超时 */
     ComM_CommunicationAllowed(0u, TRUE);
