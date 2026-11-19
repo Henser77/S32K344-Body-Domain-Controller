@@ -199,7 +199,7 @@ void EcuM_AL_DriverInitOne(void)
     * <USERBLOCK EcuM_AL_DriverInitOne Other>
     */
     /* ---- 存储栈：Mem -> MemAcc -> Fee，并等待 Fee 就绪 ---- */
-    Mem_43_INFLS_Init(&Mem_43_INFLS_Config);
+    Mem_43_INFLS_Init(NULL_PTR);
     MemAcc_Init(&MemAcc_Config);
     Fee_Init(&Fee_Config);
     {
