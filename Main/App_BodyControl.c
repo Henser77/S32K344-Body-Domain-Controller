@@ -39,23 +39,33 @@ void App_BodyControl_10ms(void)
 
     uint16 torqueLimit  = TORQUE_LIMIT_FULL;
 
-    (void)Com_ReceiveSignal(ComConf_ComSignal_Sig_VehicleSpeed, &vehicleSpeed);
-    (void)Com_ReceiveSignal(ComConf_ComSignal_Sig_MotorTemp,    &motorTemp);
-    (void)Com_ReceiveSignal(ComConf_ComSignal_Sig_SOC,          &soc);
-    (void)Com_ReceiveSignal(ComConf_ComSignal_Sig_DoorStatus,   &doorStatus);
-    (void)Com_ReceiveSignal(ComConf_ComSignal_Sig_LightStatus,  &lightStatus);
+    Std_ReturnType rSpeed;
+    Std_ReturnType rTemp;
+    Std_ReturnType rSoc;
+    Std_ReturnType rDoor;
+    Std_ReturnType rLight;
 
-    /* ---- 扭矩保护策略 ---- */
-    if (motorTemp > TEMP_CUTOFF)
+    rSpeed = Com_ReceiveSignal(ComConf_ComSignal_Sig_VehicleSpeed, &vehicleSpeed);
+    rTemp  = Com_ReceiveSignal(ComConf_ComSignal_Sig_MotorTemp,    &motorTemp);
+    rSoc   = Com_ReceiveSignal(ComConf_ComSignal_Sig_SOC,          &soc);
+    rDoor  = Com_ReceiveSignal(ComConf_ComSignal_Sig_DoorStatus,   &doorStatus);
+    rLight = Com_ReceiveSignal(ComConf_ComSignal_Sig_LightStatus,  &lightStatus);
+
+    /* ---- 扭矩保护策略（只对有效信号生效） ---- */
+    if ((E_OK == rTemp) && (0xFFu != motorTemp))
     {
-        torqueLimit = TORQUE_LIMIT_ZERO;
-    }
-    else if (motorTemp > TEMP_DERATE_START)
-    {
-        torqueLimit = TORQUE_LIMIT_HALF;
+        if (motorTemp > TEMP_CUTOFF)
+        {
+            torqueLimit = TORQUE_LIMIT_ZERO;
+        }
+        else if (motorTemp > TEMP_DERATE_START)
+        {
+            torqueLimit = TORQUE_LIMIT_HALF;
+        }
     }
 
-    if ((soc < SOC_DERATE_THRESHOLD) && (torqueLimit > TORQUE_LIMIT_LOW_SOC))
+    if ((E_OK == rSoc) && (0xFFu != soc) && (soc < SOC_DERATE_THRESHOLD)
+        && (torqueLimit > TORQUE_LIMIT_LOW_SOC))
     {
         torqueLimit = TORQUE_LIMIT_LOW_SOC;
     }
