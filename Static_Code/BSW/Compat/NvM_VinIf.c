@@ -15,6 +15,10 @@
 
 static uint8 s_readStarted  = 0u;
 static uint8 s_writeStarted = 0u;
+static uint16 s_writeWait   = 0u;
+static uint16 s_readWait    = 0u;
+
+#define VIN_WAIT_LIMIT   300u   /* 300 x 10ms = 3s，超时则放弃，避免 Dcm 卡死 */
 
 Std_ReturnType NvMVin_Read(uint8* Data, uint8 OpStatus)
 {
@@ -30,6 +34,7 @@ Std_ReturnType NvMVin_Read(uint8* Data, uint8 OpStatus)
     if ((VIN_IF_INITIAL == OpStatus) || (0u == s_readStarted))
     {
         s_readStarted = 0u;
+        s_readWait    = 0u;
         if (E_OK == NvM_ReadBlock(NvMConf_NvMBlockDescriptor_NvMBlock_VIN, g_NvMVinBuffer))
         {
             s_readStarted = 1u;
@@ -41,10 +46,18 @@ Std_ReturnType NvMVin_Read(uint8* Data, uint8 OpStatus)
 
     if (NVM_REQ_PENDING == res)
     {
+        s_readWait++;
+        if (s_readWait > VIN_WAIT_LIMIT)
+        {
+            s_readWait    = 0u;
+            s_readStarted = 0u;
+            return E_NOT_OK;
+        }
         return (Std_ReturnType)VIN_IF_E_PENDING;
     }
 
     s_readStarted = 0u;
+    s_readWait    = 0u;
 
     if ((NVM_REQ_OK == res) || (NVM_REQ_RESTORED_FROM_ROM == res))
     {
@@ -76,6 +89,7 @@ Std_ReturnType NvMVin_Write(const uint8* Data, uint8 OpStatus)
             g_NvMVinBuffer[i] = Data[i];
         }
         s_writeStarted = 0u;
+        s_writeWait    = 0u;
     }
 
     if (0u == s_writeStarted)
@@ -91,10 +105,18 @@ Std_ReturnType NvMVin_Write(const uint8* Data, uint8 OpStatus)
 
     if (NVM_REQ_PENDING == res)
     {
+        s_writeWait++;
+        if (s_writeWait > VIN_WAIT_LIMIT)
+        {
+            s_writeWait    = 0u;
+            s_writeStarted = 0u;
+            return E_NOT_OK;
+        }
         return (Std_ReturnType)VIN_IF_E_PENDING;
     }
 
     s_writeStarted = 0u;
+    s_writeWait    = 0u;
 
     return ((NVM_REQ_OK == res) || (NVM_REQ_RESTORED_FROM_ROM == res)) ? E_OK : E_NOT_OK;
 }

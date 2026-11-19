@@ -715,7 +715,7 @@ static const Com_RxIPduType Com_RxIPdu[5u] = {
         /* 1 ComIPdu_Rx_PT_Status_Can1_0x200 */
         8u, /* IPduNoDynSignalLength */
         0u, /* IPduMaxDynSignalLength */
-        0u,  /* RxIPduDMFirstTimeout */
+        50u,  /* RxIPduDMFirstTimeout */
         50u, /* RxIPduDMTimeout */
         0u, /* IpduPartitionId */
         0u, /* RxMainfunctionId */
@@ -736,7 +736,7 @@ static const Com_RxIPduType Com_RxIPdu[5u] = {
         /* 2 ComIPdu_Rx_PT_Torque_Can1_0x210 */
         8u, /* IPduNoDynSignalLength */
         0u, /* IPduMaxDynSignalLength */
-        0u,  /* RxIPduDMFirstTimeout */
+        50u,  /* RxIPduDMFirstTimeout */
         50u, /* RxIPduDMTimeout */
         0u, /* IpduPartitionId */
         0u, /* RxMainfunctionId */
@@ -757,7 +757,7 @@ static const Com_RxIPduType Com_RxIPdu[5u] = {
         /* 3 ComIPdu_Rx_Body_Status_Can2_0x100 */
         8u, /* IPduNoDynSignalLength */
         0u, /* IPduMaxDynSignalLength */
-        0u,  /* RxIPduDMFirstTimeout */
+        50u,  /* RxIPduDMFirstTimeout */
         50u, /* RxIPduDMTimeout */
         0u, /* IpduPartitionId */
         0u, /* RxMainfunctionId */
@@ -778,7 +778,7 @@ static const Com_RxIPduType Com_RxIPdu[5u] = {
         /* 4 ComIPdu_Rx_Light_Cmd_Can2_0x110 */
         8u, /* IPduNoDynSignalLength */
         0u, /* IPduMaxDynSignalLength */
-        0u,  /* RxIPduDMFirstTimeout */
+        50u,  /* RxIPduDMFirstTimeout */
         50u, /* RxIPduDMTimeout */
         0u, /* IpduPartitionId */
         0u, /* RxMainfunctionId */
