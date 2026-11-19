@@ -1,0 +1,15 @@
+/**
+ * CanSM 回调空实现（临时）。
+ */
+#include "CanSM_CanIf.h"
+
+void CanSM_ControllerBusOff(uint8 ControllerId)
+{
+    (void)ControllerId;
+}
+
+void CanSM_ControllerModeIndication(uint8 ControllerId, Can_ControllerStateType ControllerMode)
+{
+    (void)ControllerId;
+    (void)ControllerMode;
+}

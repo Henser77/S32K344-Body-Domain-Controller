@@ -1,0 +1,41 @@
+/**
+ * Dcm 兼容头（临时适配层）
+ *
+ * 背景：本工程暂未集成 Dcm 静态代码，但 PduR 的生成代码会
+ *       #include "Dcm.h" 并取 6 个 TP 接口的函数地址。
+ *
+ * 这里只声明这 6 个函数，实现见 Compat/Dcm_Stub.c。
+ * 等真正集成 Dcm 时，删除本文件即可（真正的 Dcm.h 会生效）。
+ */
+#ifndef DCM_COMPAT_SHIM_H
+#define DCM_COMPAT_SHIM_H
+
+#include "Std_Types.h"
+#include "ComStack_Types.h"
+/* 生成配置里的 PDU 编号宏（PduR_PBcfg.c 需要） */
+#include "Dcm_Cfg.h"
+
+void Dcm_TxConfirmation(PduIdType TxPduId, Std_ReturnType result);
+
+BufReq_ReturnType Dcm_CopyTxData(PduIdType id,
+                                 const PduInfoType* info,
+                                 const RetryInfoType* retry,
+                                 PduLengthType* availableDataPtr);
+
+void Dcm_TpTxConfirmation(PduIdType id, Std_ReturnType result);
+
+BufReq_ReturnType Dcm_StartOfReception(PduIdType id,
+                                       const PduInfoType* info,
+                                       PduLengthType TpSduLength,
+                                       PduLengthType* bufferSizePtr);
+
+BufReq_ReturnType Dcm_CopyRxData(PduIdType id,
+                                 const PduInfoType* info,
+                                 PduLengthType* bufferSizePtr);
+
+void Dcm_TpRxIndication(PduIdType id, Std_ReturnType result);
+
+/* 测试数据源：main 在调用 CanTp_Transmit 前填入要发送的数据 */
+void DcmStub_SetTxData(const uint8* data, uint16 len);
+
+#endif /* DCM_COMPAT_SHIM_H */

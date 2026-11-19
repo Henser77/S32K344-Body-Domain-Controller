@@ -1,0 +1,16 @@
+/**
+ * 临时桩：CanIf 生成的配置把 BusOff / ModeIndication 回调指向 CanSM。
+ * 现在没有 CanSM 模块，先给两个空实现，保证链接通过。
+ * 等以后把小满 CanIf 的上层从 CAN_SM 改成 CDD，或真正接入 CanSM 后删除本文件。
+ */
+#ifndef CANSM_CANIF_STUB_H
+#define CANSM_CANIF_STUB_H
+
+#include "Std_Types.h"
+#include "Can_GeneralTypes.h"
+
+void CanSM_ControllerBusOff(uint8 ControllerId);
+
+void CanSM_ControllerModeIndication(uint8 ControllerId, Can_ControllerStateType ControllerMode);
+
+#endif /* CANSM_CANIF_STUB_H */

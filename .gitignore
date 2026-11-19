@@ -1,0 +1,19 @@
+﻿# Build output
+Debug_FLASH/
+*.o
+*.d
+*.elf
+*.map
+*.args
+*.hex
+*.s19
+
+# IDE
+.settings/
+.metadata/
+.cproject.orig
+
+# Local backups
+Config/BSW/*.bak
+Config/BSW/*.bak2
+*.log

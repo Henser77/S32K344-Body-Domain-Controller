@@ -1,0 +1,18 @@
+/**
+ * CanSM 桩（临时适配层）
+ *
+ * ComM 通过 BusSMRequestComMode 调用 CanSM_RequestComMode 来切换总线模式。
+ * 本工程未集成 CanSM，这里只返回 E_OK；
+ * 总线模式的"确认"（ComM_BusSM_ModeIndication）由 main 主循环异步模拟，
+ * 避免在 ComM 请求处理过程中同步回调造成状态竞争。
+ *
+ * 等集成 CanSM 后删除本文件。
+ */
+#include "CanSM.h"
+
+Std_ReturnType CanSM_RequestComMode(NetworkHandleType Network, ComM_ModeType ComMode)
+{
+    (void)Network;
+    (void)ComMode;
+    return E_OK;
+}

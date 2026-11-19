@@ -1,0 +1,7 @@
+/* Compat: CanSM 桩（本工程未集成 CanSM，仅满足 ComM 的链接引用） */
+#ifndef CANSM_COMPAT_H
+#define CANSM_COMPAT_H
+#include "ComStackTypes.h"
+#include "ComM.h"
+Std_ReturnType CanSM_RequestComMode(NetworkHandleType Network, ComM_ModeType ComMode);
+#endif

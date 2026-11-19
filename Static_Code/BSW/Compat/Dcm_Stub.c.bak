@@ -1,0 +1,127 @@
+/**
+ * Dcm 桩（临时适配层）
+ *
+ * 背景：本工程暂不集成 Dcm/Dem/ComM，但 PduR 的生成代码在模块表里
+ *       引用了 Dcm 的 6 个 TP 接口函数。
+ *
+ * 关键点：CanTp 发送多帧时，会通过 PduR_CanTpCopyTxData → PduR_TpCopyTxData
+ *         → Dcm_CopyTxData 来取数据。如果这里返回 E_NOT_OK，CanTp 一帧都不会发。
+ *         所以本桩实现了一个"测试数据源"，由 main 调用 DcmStub_SetTxData() 填数据。
+ *
+ * 等真正集成 Dcm 时，删除本文件即可。
+ */
+#include "Std_Types.h"
+#include "ComStack_Types.h"
+
+/* ==================== 测试数据源 ==================== */
+#define DCM_STUB_BUF_SIZE   64U
+
+static uint8  DcmStub_TxBuf[DCM_STUB_BUF_SIZE];
+static uint16 DcmStub_TxLen = 0U;
+static uint16 DcmStub_TxPos = 0U;
+
+/**
+ * @brief 设置下一次 TP 发送要用的数据（供 CanTp 通过 CopyTxData 取走）
+ */
+void DcmStub_SetTxData(const uint8* data, uint16 len)
+{
+    uint16 i;
+
+    if (len > DCM_STUB_BUF_SIZE)
+    {
+        len = DCM_STUB_BUF_SIZE;
+    }
+    for (i = 0U; i < len; i++)
+    {
+        DcmStub_TxBuf[i] = data[i];
+    }
+    DcmStub_TxLen = len;
+    DcmStub_TxPos = 0U;
+}
+
+/* ==================== Dcm 接口桩 ==================== */
+
+void Dcm_TxConfirmation(PduIdType TxPduId, Std_ReturnType result)
+{
+    (void)TxPduId;
+    (void)result;
+}
+
+BufReq_ReturnType Dcm_CopyTxData(PduIdType id,
+                                 const PduInfoType* info,
+                                 const RetryInfoType* retry,
+                                 PduLengthType* availableDataPtr)
+{
+    uint16 copyLen;
+
+    (void)id;
+    (void)retry;
+
+    if ((NULL_PTR == info) || (NULL_PTR == info->SduDataPtr))
+    {
+        return BUFREQ_E_NOT_OK;
+    }
+
+    copyLen = (uint16)info->SduLength;
+    if ((DcmStub_TxPos + copyLen) > DcmStub_TxLen)
+    {
+        copyLen = (DcmStub_TxPos < DcmStub_TxLen) ? (DcmStub_TxLen - DcmStub_TxPos) : 0U;
+    }
+
+    if (copyLen > 0U)
+    {
+        uint16 i;
+        for (i = 0U; i < copyLen; i++)
+        {
+            info->SduDataPtr[i] = DcmStub_TxBuf[DcmStub_TxPos + i];
+        }
+        DcmStub_TxPos += copyLen;
+    }
+
+    if (NULL_PTR != availableDataPtr)
+    {
+        *availableDataPtr = (DcmStub_TxPos < DcmStub_TxLen) ? (DcmStub_TxLen - DcmStub_TxPos) : 0U;
+    }
+
+    return BUFREQ_OK;
+}
+
+void Dcm_TpTxConfirmation(PduIdType id, Std_ReturnType result)
+{
+    (void)id;
+    (void)result;
+}
+
+BufReq_ReturnType Dcm_StartOfReception(PduIdType id,
+                                       const PduInfoType* info,
+                                       PduLengthType TpSduLength,
+                                       PduLengthType* bufferSizePtr)
+{
+    (void)id;
+    (void)info;
+    (void)TpSduLength;
+    if (NULL_PTR != bufferSizePtr)
+    {
+        *bufferSizePtr = 0U;
+    }
+    return BUFREQ_E_NOT_OK;
+}
+
+BufReq_ReturnType Dcm_CopyRxData(PduIdType id,
+                                 const PduInfoType* info,
+                                 PduLengthType* bufferSizePtr)
+{
+    (void)id;
+    (void)info;
+    if (NULL_PTR != bufferSizePtr)
+    {
+        *bufferSizePtr = 0U;
+    }
+    return BUFREQ_E_NOT_OK;
+}
+
+void Dcm_TpRxIndication(PduIdType id, Std_ReturnType result)
+{
+    (void)id;
+    (void)result;
+}
