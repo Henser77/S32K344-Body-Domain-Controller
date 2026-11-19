@@ -43,6 +43,8 @@
 #include "NvM.h"
 #include "NvM_Cfg.h"
 
+#include "App_BodyControl.h"
+
 /* 小满部分模块未在公共头里声明 MainFunction */
 extern void CanTp_MainFunction(void);
 extern void Dcm_MainFunction(void);
@@ -116,6 +118,9 @@ static void Task_10ms(void* pvParameters)
     for (;;)
     {
         Com_MainFunctionRx(0U);
+
+        App_BodyControl_10ms();
+
         Com_MainFunctionTx(0U);
 
         CanNm_MainFunction(0U);
@@ -168,6 +173,8 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char* pcTaskName)
 
 int main(void)
 {
+    App_BodyControl_Init();
+
     (void)xTaskCreate(Task_1ms,  "T1ms",  256U, NULL, 4U, &Task_1ms_Handle);
     (void)xTaskCreate(Task_5ms,  "T5ms",  320U, NULL, 3U, &Task_5ms_Handle);
     (void)xTaskCreate(Task_10ms, "T10ms", 512U, NULL, 2U, &Task_10ms_Handle);
