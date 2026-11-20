@@ -108,6 +108,7 @@ static void Task_10ms(void* pvParameters)
 
         /* 本阶段先由应用直接请求通信（后续可迁到 BswM 规则） */
         Com_IpduGroupStart(0u, TRUE);
+        Com_EnableReceptionDM(0u);   /* 启动接收超时监控（Deadline Monitoring） */
         ComM_CommunicationAllowed(0u, TRUE);
         ComM_CommunicationAllowed(1u, TRUE);
         ComM_CommunicationAllowed(2u, TRUE);
