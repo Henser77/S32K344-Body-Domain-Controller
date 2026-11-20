@@ -57,11 +57,14 @@ void App_BodyControl_10ms(void)
     /* ---- 扭矩保护策略（只对有效信号生效） ---- */
     if ((E_OK == rTemp) && (0xFFu != motorTemp))
     {
-        if (motorTemp > TEMP_CUTOFF)
+        /* Com_ReceiveSignal 返回原始值，物理温度 = raw - 40 */
+        uint16 motorTempC = (motorTemp >= 40u) ? (uint16)(motorTemp - 40u) : 0u;
+
+        if (motorTempC > TEMP_CUTOFF)
         {
             torqueLimit = TORQUE_LIMIT_ZERO;
         }
-        else if (motorTemp > TEMP_DERATE_START)
+        else if (motorTempC > TEMP_DERATE_START)
         {
             torqueLimit = TORQUE_LIMIT_HALF;
         }
