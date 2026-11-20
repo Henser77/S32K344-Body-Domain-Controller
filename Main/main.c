@@ -173,7 +173,13 @@ static void Task_10ms(void* pvParameters)
                 pdu.length      = 8u;
                 pdu.sdu         = d;
                 pdu.swPduHandle = 0u;
-                (void)Can_43_FLEXCAN_Write(12u, &pdu);   /* CAN2 Tx 0x123 邮箱，发 0x7FD */
+                {
+                    Std_ReturnType wr = Can_43_FLEXCAN_Write(14u, &pdu);
+                    if (E_OK != wr)
+                    {
+                        wr = Can_43_FLEXCAN_Write(15u, &pdu);
+                    }
+                }
                 for (w = 0u; w < 40000u; w++)
                 {
                 }
