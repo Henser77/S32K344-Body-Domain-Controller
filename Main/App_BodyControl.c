@@ -36,6 +36,7 @@ void App_BodyControl_10ms(void)
     uint8  soc          = 0u;
     uint8  doorStatus   = 0u;
     uint8  lightStatus  = 0u;
+    uint8  lightCmd     = 0u;
 
     uint16 torqueLimit  = TORQUE_LIMIT_FULL;
 
@@ -44,12 +45,14 @@ void App_BodyControl_10ms(void)
     Std_ReturnType rSoc;
     Std_ReturnType rDoor;
     Std_ReturnType rLight;
+    Std_ReturnType rLightCmd;
 
     rSpeed = Com_ReceiveSignal(ComConf_ComSignal_Sig_VehicleSpeed, &vehicleSpeed);
     rTemp  = Com_ReceiveSignal(ComConf_ComSignal_Sig_MotorTemp,    &motorTemp);
     rSoc   = Com_ReceiveSignal(ComConf_ComSignal_Sig_SOC,          &soc);
     rDoor  = Com_ReceiveSignal(ComConf_ComSignal_Sig_DoorStatus,   &doorStatus);
     rLight = Com_ReceiveSignal(ComConf_ComSignal_Sig_LightStatus,  &lightStatus);
+    rLightCmd = Com_ReceiveSignal(ComConf_ComSignal_Sig_LightCmd,  &lightCmd);
 
     /* ---- 扭矩保护策略（只对有效信号生效） ---- */
     if ((E_OK == rTemp) && (0xFFu != motorTemp))
@@ -78,9 +81,19 @@ void App_BodyControl_10ms(void)
     }
 
     /* ---- 汇总状态给车身网（0x101） ---- */
-    (void)Com_SendSignal(ComConf_ComSignal_Sig_GwVehicleSpeed, &vehicleSpeed);
-    (void)Com_SendSignal(ComConf_ComSignal_Sig_GwDoorStatus,   &doorStatus);
-    (void)Com_SendSignal(ComConf_ComSignal_Sig_GwLightStatus,  &lightStatus);
+    {
+        uint8 lightOut = lightStatus;
+
+        /* 0x110 灯光命令有效时，用命令值作为"当前灯光状态" */
+        if ((E_OK == rLightCmd) && (0xFFu != lightCmd) && (lightCmd <= 7u))
+        {
+            lightOut = lightCmd;
+        }
+
+        (void)Com_SendSignal(ComConf_ComSignal_Sig_GwVehicleSpeed, &vehicleSpeed);
+        (void)Com_SendSignal(ComConf_ComSignal_Sig_GwDoorStatus,   &doorStatus);
+        (void)Com_SendSignal(ComConf_ComSignal_Sig_GwLightStatus,  &lightOut);
+    }
 
     s_aliveCounter = (uint8)((s_aliveCounter + 1u) & 0x0Fu);
     (void)Com_SendSignal(ComConf_ComSignal_Sig_GwAliveCounter, &s_aliveCounter);
