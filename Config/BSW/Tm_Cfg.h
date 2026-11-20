@@ -21,7 +21,7 @@
  * @date        : Time Service Configuration Parameters
  * @customer    : EasyXMen
  * @description : Tm_Cfg.h
- * @generator   : AUTOSAR classic Platform 2026-11-19 22:11:06
+ * @generator   : AUTOSAR classic Platform 2026-11-20 13:51:02
  * @toolVersion : R24-11
  **********************************************************************************************************************/
 #ifndef TM_CFG_H_

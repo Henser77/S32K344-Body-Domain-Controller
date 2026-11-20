@@ -19,7 +19,7 @@
  * @MCU         : S32K148
  * @file        : NvM_MemMap.h
  * @licence     : 
- * @date        : 2026-11-19 22:11:13
+ * @date        : 2026-11-20 13:51:08
  * @customer    : EasyXMen
  * @description : Configuration parameter of MemMap
  * @generator   : AUTOSAR classic Platform R23-11

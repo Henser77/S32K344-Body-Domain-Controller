@@ -21,7 +21,7 @@
  * @date        : Configuration parameter of MemAcc
  * @customer    : EasyXMen
  * @description : MemAcc_Cfg.h
- * @generator   : AUTOSAR classic Platform 2026-11-19 22:11:05
+ * @generator   : AUTOSAR classic Platform 2026-11-20 13:51:02
  * @toolVersion : R23-11
  **********************************************************************************************************************/
 

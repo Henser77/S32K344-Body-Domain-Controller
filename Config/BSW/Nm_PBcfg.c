@@ -18,7 +18,7 @@
  * @MCU         : S32K148
  * @file        : Nm_PBcfg.c
  * @licence     : 
- * @date        : 2026-11-19 22:11:06
+ * @date        : 2026-11-20 13:51:02
  * @customer    : EasyXMen
  * @description : Post-Build configuration parameter of Nm
  * @generator   : AUTOSAR classic Platform R23-11

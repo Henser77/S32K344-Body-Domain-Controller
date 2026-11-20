@@ -18,7 +18,7 @@
  * @MCU         : S32K148
  * @file        : Com_PBcfg.c
  * @licence     : 
- * @date        : 2026-11-19 22:11:06
+ * @date        : 2026-11-20 13:51:02
  * @customer    : EasyXMen
  * @description : Post-Build configuration parameter of Com
  * @generator   : AUTOSAR classic Platform R23-11
@@ -352,7 +352,7 @@ static const Com_RxIPduRunTimeStateType Com_RxIPduInitState_ComMainFunctionRx_10
         8u, /* RxIpduLength */
         0u, /* RxIpduBaseDMTimeout */
         0u, /* RxOffset */
-        1u, /* RxIpduRTStFlag */
+        0u, /* RxIpduRTStFlag */
         0u, /* RxIpduDMFlag */
     },
     {
@@ -360,7 +360,7 @@ static const Com_RxIPduRunTimeStateType Com_RxIPduInitState_ComMainFunctionRx_10
         8u, /* RxIpduLength */
         0u, /* RxIpduBaseDMTimeout */
         0u, /* RxOffset */
-        1u, /* RxIpduRTStFlag */
+        0u, /* RxIpduRTStFlag */
         0u, /* RxIpduDMFlag */
     },
     {
@@ -368,7 +368,7 @@ static const Com_RxIPduRunTimeStateType Com_RxIPduInitState_ComMainFunctionRx_10
         8u, /* RxIpduLength */
         0u, /* RxIpduBaseDMTimeout */
         0u, /* RxOffset */
-        1u, /* RxIpduRTStFlag */
+        0u, /* RxIpduRTStFlag */
         0u, /* RxIpduDMFlag */
     },
     {
@@ -376,7 +376,7 @@ static const Com_RxIPduRunTimeStateType Com_RxIPduInitState_ComMainFunctionRx_10
         8u, /* RxIpduLength */
         0u, /* RxIpduBaseDMTimeout */
         0u, /* RxOffset */
-        1u, /* RxIpduRTStFlag */
+        0u, /* RxIpduRTStFlag */
         0u, /* RxIpduDMFlag */
     },
     {
@@ -384,7 +384,7 @@ static const Com_RxIPduRunTimeStateType Com_RxIPduInitState_ComMainFunctionRx_10
         8u, /* RxIpduLength */
         0u, /* RxIpduBaseDMTimeout */
         0u, /* RxOffset */
-        1u, /* RxIpduRTStFlag */
+        0u, /* RxIpduRTStFlag */
         0u, /* RxIpduDMFlag */
     },
 };
@@ -435,7 +435,7 @@ static const Com_TxIPduRunTimeStateType Com_TxIPduInitState_ComMainFunctionTx_10
         0u, /* DMCnt */
         0u, /* PeriodCnt */
         0u, /* TxOffset */
-        5u, /* TxIpduRTStFlag */
+        4u, /* TxIpduRTStFlag */
         COM_TX_MODE_MIXED_WITHOUT_REPETITION, /* ipduTxMode */
     },
     {
@@ -446,7 +446,7 @@ static const Com_TxIPduRunTimeStateType Com_TxIPduInitState_ComMainFunctionTx_10
         0u, /* DMCnt */
         0u, /* PeriodCnt */
         0u, /* TxOffset */
-        5u, /* TxIpduRTStFlag */
+        4u, /* TxIpduRTStFlag */
         COM_TX_MODE_PERIODIC, /* ipduTxMode */
     },
 };
@@ -469,50 +469,62 @@ static const Com_TxIPduRunTimeStateType* const Com_TxIPduInitState[] = {
 #define COM_STOP_SEC_CONFIG_DATA_PTR
 #include "Com_MemMap.h"
 
+#define COM_START_SEC_CONFIG_DATA_16
+#include "Com_MemMap.h"
+static const Com_RxIpduGroupIdType Com_RxIPduGroupsRef[] = {
+    ComIPduGroup_Default, /*0 ComIPdu_Rx_0x120*/
+    ComIPduGroup_Default, /*1 ComIPdu_Rx_PT_Status_Can1_0x200*/
+    ComIPduGroup_Default, /*2 ComIPdu_Rx_PT_Torque_Can1_0x210*/
+    ComIPduGroup_Default, /*3 ComIPdu_Rx_Body_Status_Can2_0x100*/
+    ComIPduGroup_Default, /*4 ComIPdu_Rx_Light_Cmd_Can2_0x110*/
+};
+#define COM_STOP_SEC_CONFIG_DATA_16
+#include "Com_MemMap.h"
+
 
 #define COM_START_SEC_CONFIG_DATA_16
 #include "Com_MemMap.h"
 static const uint16 Com_RxSignalFirstTimeoutVal[] = {
     /* Sig_VehicleSpeed */
-    0u,
+    50u,
     /* Sig_EngineSpeed */
-    0u,
+    50u,
     /* Sig_Gear */
-    0u,
+    50u,
     /* Sig_SOC */
-    0u,
+    50u,
     /* Sig_ActualTorque */
-    0u,
+    50u,
     /* Sig_TorqueLimit */
-    0u,
+    50u,
     /* Sig_MotorTemp */
-    0u,
+    50u,
     /* Sig_DeratingFactor */
-    0u,
+    50u,
     /* Sig_DoorStatus */
-    0u,
+    50u,
     /* Sig_LockStatus */
-    0u,
+    50u,
     /* Sig_LightStatus */
-    0u,
+    50u,
     /* Sig_WiperStatus */
-    0u,
+    50u,
     /* Sig_TrunkStatus */
-    0u,
+    50u,
     /* Sig_HoodStatus */
-    0u,
+    50u,
     /* Sig_BatteryVoltage */
-    0u,
+    50u,
     /* Sig_IgnitionStatus */
-    0u,
+    50u,
     /* Sig_LightCmd */
-    0u,
+    50u,
     /* Sig_TurnCmd */
-    0u,
+    50u,
     /* Sig_FlashCmd */
-    0u,
+    50u,
     /* Sig_LightLevel */
-    0u,
+    50u,
 };
 #define COM_STOP_SEC_CONFIG_DATA_16
 #include "Com_MemMap.h"
@@ -701,8 +713,8 @@ static const Com_RxIPduType Com_RxIPdu[5u] = {
         0u, /* RxIPduBufIndex */
         0u, /* IpduSignalRefStartId */
         2u, /* IPduSignalsRefEndId */
-        COM_UNUSED_RXIPDUGROUPID,  /* IPduGroupsRefStartId */
-        0u,  /* IPduGroupsRefEndId */
+        0u,  /* IPduGroupsRefStartId */
+        1u,  /* IPduGroupsRefEndId */
         COM_UNUSED_RXSIGTIMEOUTID,  /* IPduSignalsTimeoutRefStartId */
         COM_UNUSED_RXSIGTIMEOUTID,  /* IPduSignalsTimeoutRefEndId */
         COM_UNUSED_RXSIGNALGROUPID,  /* IPduSignalGroupsRefStartId */
@@ -715,15 +727,15 @@ static const Com_RxIPduType Com_RxIPdu[5u] = {
         /* 1 ComIPdu_Rx_PT_Status_Can1_0x200 */
         8u, /* IPduNoDynSignalLength */
         0u, /* IPduMaxDynSignalLength */
-        50u,  /* RxIPduDMFirstTimeout */
+        550u,  /* RxIPduDMFirstTimeout */
         50u, /* RxIPduDMTimeout */
         0u, /* IpduPartitionId */
         0u, /* RxMainfunctionId */
         8u, /* RxIPduBufIndex */
         2u, /* IpduSignalRefStartId */
         6u, /* IPduSignalsRefEndId */
-        COM_UNUSED_RXIPDUGROUPID,  /* IPduGroupsRefStartId */
-        0u,  /* IPduGroupsRefEndId */
+        1u,  /* IPduGroupsRefStartId */
+        2u,  /* IPduGroupsRefEndId */
         0u,  /* IPduSignalsTimeoutRefStartId */
         4u,  /* IPduSignalsTimeoutRefEndId */
         COM_UNUSED_RXSIGNALGROUPID,  /* IPduSignalGroupsRefStartId */
@@ -736,15 +748,15 @@ static const Com_RxIPduType Com_RxIPdu[5u] = {
         /* 2 ComIPdu_Rx_PT_Torque_Can1_0x210 */
         8u, /* IPduNoDynSignalLength */
         0u, /* IPduMaxDynSignalLength */
-        50u,  /* RxIPduDMFirstTimeout */
+        550u,  /* RxIPduDMFirstTimeout */
         50u, /* RxIPduDMTimeout */
         0u, /* IpduPartitionId */
         0u, /* RxMainfunctionId */
         16u, /* RxIPduBufIndex */
         6u, /* IpduSignalRefStartId */
         10u, /* IPduSignalsRefEndId */
-        COM_UNUSED_RXIPDUGROUPID,  /* IPduGroupsRefStartId */
-        0u,  /* IPduGroupsRefEndId */
+        2u,  /* IPduGroupsRefStartId */
+        3u,  /* IPduGroupsRefEndId */
         4u,  /* IPduSignalsTimeoutRefStartId */
         8u,  /* IPduSignalsTimeoutRefEndId */
         COM_UNUSED_RXSIGNALGROUPID,  /* IPduSignalGroupsRefStartId */
@@ -757,15 +769,15 @@ static const Com_RxIPduType Com_RxIPdu[5u] = {
         /* 3 ComIPdu_Rx_Body_Status_Can2_0x100 */
         8u, /* IPduNoDynSignalLength */
         0u, /* IPduMaxDynSignalLength */
-        50u,  /* RxIPduDMFirstTimeout */
+        550u,  /* RxIPduDMFirstTimeout */
         50u, /* RxIPduDMTimeout */
         0u, /* IpduPartitionId */
         0u, /* RxMainfunctionId */
         24u, /* RxIPduBufIndex */
         10u, /* IpduSignalRefStartId */
         18u, /* IPduSignalsRefEndId */
-        COM_UNUSED_RXIPDUGROUPID,  /* IPduGroupsRefStartId */
-        0u,  /* IPduGroupsRefEndId */
+        3u,  /* IPduGroupsRefStartId */
+        4u,  /* IPduGroupsRefEndId */
         8u,  /* IPduSignalsTimeoutRefStartId */
         16u,  /* IPduSignalsTimeoutRefEndId */
         COM_UNUSED_RXSIGNALGROUPID,  /* IPduSignalGroupsRefStartId */
@@ -778,15 +790,15 @@ static const Com_RxIPduType Com_RxIPdu[5u] = {
         /* 4 ComIPdu_Rx_Light_Cmd_Can2_0x110 */
         8u, /* IPduNoDynSignalLength */
         0u, /* IPduMaxDynSignalLength */
-        50u,  /* RxIPduDMFirstTimeout */
+        550u,  /* RxIPduDMFirstTimeout */
         50u, /* RxIPduDMTimeout */
         0u, /* IpduPartitionId */
         0u, /* RxMainfunctionId */
         32u, /* RxIPduBufIndex */
         18u, /* IpduSignalRefStartId */
         22u, /* IPduSignalsRefEndId */
-        COM_UNUSED_RXIPDUGROUPID,  /* IPduGroupsRefStartId */
-        0u,  /* IPduGroupsRefEndId */
+        4u,  /* IPduGroupsRefStartId */
+        5u,  /* IPduGroupsRefEndId */
         16u,  /* IPduSignalsTimeoutRefStartId */
         20u,  /* IPduSignalsTimeoutRefEndId */
         COM_UNUSED_RXSIGNALGROUPID,  /* IPduSignalGroupsRefStartId */
@@ -805,6 +817,8 @@ static const Com_RxIPduType Com_RxIPdu[5u] = {
 #include "Com_MemMap.h"
 static const Com_TxIpduGroupIdType Com_TxIPduGroupsRef[] = {
     ComIPduGroup_Default, /*0 ComIPdu_Tx_0x123*/
+    ComIPduGroup_Default, /*1 ComIPdu_Tx_PT_Cmd_Can1_0x201*/
+    ComIPduGroup_Default, /*2 ComIPdu_Tx_Body_GwStatus_Can2_0x101*/
 };
 #define COM_STOP_SEC_CONFIG_DATA_16
 #include "Com_MemMap.h"
@@ -875,8 +889,8 @@ static const Com_TxIPduType Com_TxIPdu[3u] = {
         4u, /* ComIPduSignalsRefNumber */
         COM_UNUSED_TXSIGNALGROUPID, /* ComIPduSignalGroupsRefStartId */
         0u, /* ComIPduSignalGroupsRefNumber */
-        COM_UNUSED_TXIPDUGROUPID, /* ComIPduGroupsRefStartId */
-        0u, /* ComIPduGroupsRefNumber */
+        1u, /* ComIPduGroupsRefStartId */
+        2u, /* ComIPduGroupsRefNumber */
         COM_TX_MODE_MIXED_WITHOUT_REPETITION, /* ComTxTrueModeMode */
         COM_TX_MODE_NULL, /* ComTxFalseModeMode */
         0u, /* MetaDataLength */
@@ -899,8 +913,8 @@ static const Com_TxIPduType Com_TxIPdu[3u] = {
         8u, /* ComIPduSignalsRefNumber */
         COM_UNUSED_TXSIGNALGROUPID, /* ComIPduSignalGroupsRefStartId */
         0u, /* ComIPduSignalGroupsRefNumber */
-        COM_UNUSED_TXIPDUGROUPID, /* ComIPduGroupsRefStartId */
-        0u, /* ComIPduGroupsRefNumber */
+        2u, /* ComIPduGroupsRefStartId */
+        3u, /* ComIPduGroupsRefNumber */
         COM_TX_MODE_PERIODIC, /* ComTxTrueModeMode */
         COM_TX_MODE_NULL, /* ComTxFalseModeMode */
         0u, /* MetaDataLength */
@@ -1433,7 +1447,7 @@ static const Com_SigInitValueSizePerPartitionType Com_SigInitValSize = {
 #define COM_START_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Com_MemMap.h"
 static const Com_IpduGroupRefType Com_IPduGroup = {
-    NULL_PTR,
+    Com_RxIPduGroupsRef,
     Com_TxIPduGroupsRef,
 };
 #define COM_STOP_SEC_CONFIG_DATA_UNSPECIFIED
@@ -1493,7 +1507,7 @@ const struct Com_ConfigTypeTag Com_Config = /* PRQA S 1502, 1531 */ /* VL_QAC_On
     NULL_PTR,   /* TxGroupSignalPtr */
     &Com_MainFunctionRxRange[0],  /* MainFunctionRxRangePtr */
     &Com_MainFunctionTxRange[0],  /* MainFunctionTxRangePtr */
-    &Com_IPduGroup,               /* IpduGroupRefPtr */
+    &Com_IPduGroup,   /* IpduGroupRefPtr */
     &Com_SignalInitValue, /* SignalInitValuePtr */
     &Com_SigInitValSize,  /* SignalInitValueSizePtr */
     &Com_SignalSubstituteValue,   /* SignalSubstitueteValuePtr */

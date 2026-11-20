@@ -18,7 +18,7 @@
  * @MCU         : S32K148
  * @file        : Com_Cfg.h
  * @licence     : 
- * @date        : 2026-11-19 22:11:05
+ * @date        : 2026-11-20 13:51:01
  * @customer    : EasyXMen
  * @description : Pre-compile configuration parameter of Com
  * @generator   : AUTOSAR classic Platform R23-11
@@ -66,8 +66,8 @@
 
 #define COM_MAX_IPDU_NUMBER                      8u
 
-#define COM_MAX_RXIPDUGROUP_NUMBER                 0u
-#define COM_MAX_TXIPDUGROUP_NUMBER                 1u
+#define COM_MAX_RXIPDUGROUP_NUMBER                 5u
+#define COM_MAX_TXIPDUGROUP_NUMBER                 3u
 #define COM_MAX_IPDUGROUP_NUMBER                   1u
 
 #define COM_MAX_RXIPDU_CALLOUT_NUMBER   0u

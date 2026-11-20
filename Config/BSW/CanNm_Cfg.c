@@ -18,7 +18,7 @@
  * @MCU         : S32K148
  * @file        : CanNm_Cfg.c
  * @licence     : 
- * @date        : 2026-11-19 22:11:06
+ * @date        : 2026-11-20 13:51:03
  * @customer    : EasyXMen
  * @description : Configuration data for CanNm
  * @generator   : AUTOSAR classic Platform R23-11

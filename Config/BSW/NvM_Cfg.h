@@ -18,7 +18,7 @@
  * @MCU         : S32K148
  * @file        : NvM_Cfg.h
  * @licence     : 
- * @date        : 2026-11-19 22:11:05
+ * @date        : 2026-11-20 13:51:02
  * @customer    : EasyXMen
  * @description : Pre-compile time definitions of NvM
  * @generator   : AUTOSAR classic Platform R23-11

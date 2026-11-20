@@ -18,7 +18,7 @@
  * @MCU         : S32K148
  * @file        : CanTp_PBcfg.c
  * @licence     : 
- * @date        : 2026-11-19 22:11:05
+ * @date        : 2026-11-20 13:51:02
  * @customer    : EasyXMen
  * @description : Configuration parameter of CanTp
  * @generator   : AUTOSAR classic Platform R23_11

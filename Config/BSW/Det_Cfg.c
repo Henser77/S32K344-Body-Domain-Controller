@@ -18,7 +18,7 @@
  * @MCU         : S32K148
  * @file        : Det_Cfg.c
  * @licence     : 
- * @date        : 2026-11-19 22:11:06
+ * @date        : 2026-11-20 13:51:03
  * @customer    : EasyXMen
  * @description : config definitions for DET module
  * @generator   : AUTOSAR classic Platform R23-11

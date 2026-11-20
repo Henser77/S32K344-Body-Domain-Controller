@@ -171,3 +171,14 @@ if (Test-Path $stub) {
         Write-Host '[OK] EcuM_Callout_Stubs.c: duplicate STOP removed'
     }
 }
+# --- Com: ensure first-reception timeout for business Rx IPdus ---
+$comPb = Join-Path $cfg 'Com_PBcfg.c'
+if (Test-Path $comPb) {
+    $c = [System.IO.File]::ReadAllText($comPb)
+    foreach ($name in @('ComIPdu_Rx_PT_Status_Can1_0x200','ComIPdu_Rx_PT_Torque_Can1_0x210','ComIPdu_Rx_Body_Status_Can2_0x100','ComIPdu_Rx_Light_Cmd_Can2_0x110')) {
+        $pat = '(?s)(/\* \d+ ' + [regex]::Escape($name) + ' \*/.*?)0u,(\s*/\* RxIPduDMFirstTimeout \*/)'
+        $c = [regex]::Replace($c, $pat, '${1}50u,${2}', 1)
+    }
+    [System.IO.File]::WriteAllText($comPb, $c, (New-Object System.Text.UTF8Encoding($false)))
+    Write-Host '[OK] Com_PBcfg.c: Rx first timeout ensured (50 ticks)'
+}
