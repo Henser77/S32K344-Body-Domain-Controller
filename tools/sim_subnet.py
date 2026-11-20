@@ -152,6 +152,7 @@ def main():
     last_print = 0.0
     last_101 = None
     last_201 = None
+    last_dm = None
     last_tx_state = None
 
     try:
@@ -176,6 +177,8 @@ def main():
             for cid, data in recv(CH_CAN2, rx2, 0):
                 if cid == 0x101:
                     last_101 = decode_0x101(data)
+                elif cid == 0x7FD and len(data) >= 6:
+                    last_dm = (data[0], data[1], data[2] | (data[3] << 8), data[4], data[5])
 
             now = time.time()
             if now - last_print >= 0.5:
@@ -202,6 +205,9 @@ def main():
                           % (last_201, last_201 / 10.0))
                 else:
                     print("0x201  未收到")
+                if last_dm is not None:
+                    print("0x7FD  RTSt=0x%02X DMFlag=0x%02X BaseDM=%d DMEn=%d"
+                          % (last_dm[0], last_dm[1], last_dm[2], last_dm[4]))
                 print("-" * 60)
 
             time.sleep(PERIOD_MS / 1000.0)

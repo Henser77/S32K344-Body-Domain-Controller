@@ -53,6 +53,7 @@ extern void Fee_MainFunction(void);
 extern void MemAcc_MainFunction(void);
 extern void Can_43_FLEXCAN_MainFunction_Wakeup(void);
 extern void BswM_MainFunction(void);
+extern Com_RxIPduRunTimeStateType* const Com_RxIPduRunTimeState[COM_MAX_NUMBER_OF_MAIN_FUNCTION_RX];
 extern volatile uint8 g_EcuResetRequest;   /* 0x11 复位请求（Rte 桩提供） */
 
 static TaskHandle_t Task_1ms_Handle  = NULL;
@@ -147,6 +148,37 @@ static void Task_10ms(void* pvParameters)
 
         /* CAN wakeup polling（10 ms） */
         Can_43_FLEXCAN_MainFunction_Wakeup();
+
+        /* 调试：每秒上报 0x200 的 Com DM 状态（0x7FD） */
+        {
+            static uint16 dbgDiv = 0u;
+            dbgDiv++;
+            if (dbgDiv >= 100u)
+            {
+                uint8 d[8];
+                const Com_RxIPduRunTimeStateType* st = &Com_RxIPduRunTimeState[0][1];
+                Can_PduType pdu;
+                volatile uint32 w;
+
+                d[0] = st->RxIpduRTStFlag;
+                d[1] = st->RxIpduDMFlag;
+                d[2] = (uint8)(st->RxIpduBaseDMTimeout & 0xFFu);
+                d[3] = (uint8)(st->RxIpduBaseDMTimeout >> 8);
+                d[4] = (uint8)(st->RxIpduRTStFlag & 1u);
+                d[5] = (uint8)((st->RxIpduRTStFlag >> 1) & 1u);
+                d[6] = 0u;
+                d[7] = 0u;
+
+                pdu.id          = 0x7FDu;
+                pdu.length      = 8u;
+                pdu.sdu         = d;
+                pdu.swPduHandle = 0u;
+                (void)Can_43_FLEXCAN_Write(12u, &pdu);   /* CAN2 Tx 0x123 邮箱，发 0x7FD */
+                for (w = 0u; w < 40000u; w++)
+                {
+                }
+            }
+        }
 
         vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(10));
     }
