@@ -118,6 +118,39 @@ static void Task_10ms(void* pvParameters)
 
     for (;;)
     {
+        TickType_t now = xTaskGetTickCount();
+
+        /* ---- 网络管理演示：10s 睡眠，20s 唤醒 ---- */
+        {
+            static uint8 nmPhase = 0u;
+
+            if ((0u == nmPhase) && ((uint32)now >= 10000u))
+            {
+                nmPhase = 1u;
+                /* 释放三个通道的所有用户请求 */
+                (void)ComM_RequestComMode(ComMConf_ComMUser_ComMUser_App_Can0, COMM_NO_COMMUNICATION);
+                (void)ComM_RequestComMode(ComMConf_ComMUser_ComMUser_App_Can1, COMM_NO_COMMUNICATION);
+                (void)ComM_RequestComMode(ComMConf_ComMUser_ComMUser_App_Can2, COMM_NO_COMMUNICATION);
+                (void)ComM_RequestComMode(ComMConf_ComMUser_ComMUser_Dcm_Can0, COMM_NO_COMMUNICATION);
+                /* 禁止通信，防止其他用户把网络拉回 FULL */
+                ComM_CommunicationAllowed(0u, FALSE);
+                ComM_CommunicationAllowed(1u, FALSE);
+                ComM_CommunicationAllowed(2u, FALSE);
+            }
+            else if ((1u == nmPhase) && ((uint32)now >= 20000u))
+            {
+                nmPhase = 2u;
+                /* 本地唤醒：允许通信 + 重新请求 FULL */
+                ComM_CommunicationAllowed(0u, TRUE);
+                ComM_CommunicationAllowed(1u, TRUE);
+                ComM_CommunicationAllowed(2u, TRUE);
+                (void)ComM_RequestComMode(ComMConf_ComMUser_ComMUser_App_Can0, COMM_FULL_COMMUNICATION);
+                (void)ComM_RequestComMode(ComMConf_ComMUser_ComMUser_App_Can1, COMM_FULL_COMMUNICATION);
+                (void)ComM_RequestComMode(ComMConf_ComMUser_ComMUser_App_Can2, COMM_FULL_COMMUNICATION);
+                (void)ComM_RequestComMode(ComMConf_ComMUser_ComMUser_Dcm_Can0, COMM_FULL_COMMUNICATION);
+            }
+        }
+
         Com_MainFunctionRx(0U);
 
         App_BodyControl_10ms();
