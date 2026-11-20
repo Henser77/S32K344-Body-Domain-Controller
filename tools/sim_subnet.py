@@ -3,26 +3,17 @@
 """
 sim_subnet.py —— 动力/车身子网模拟器 + 网关输出监视
 
-用法（必须用 32 位 Python）：
-    D:\\tools\\python32\\python.exe D:\\tools\\sim_subnet.py
+普通模式（一直发送）：
+    D:\\tools\\python32\\python.exe sim_subnet.py
 
-功能：
-    CH1 (500k) 模拟 CAN1 动力子网：
-        0x200  PT_Status  每 100ms：车速 60.00、转速 3000、档位 3、SOC 80
-        0x210  PT_Torque  每 100ms：扭矩 0、上限 1000、电机温度 110℃、降额 100
+超时验证模式（发 2 秒、停 2 秒，循环）：
+    D:\\tools\\python32\\python.exe sim_subnet.py --timeout-test
 
-    CH2 (125k) 模拟 CAN2 车身子网：
-        0x100  Body_Status 每 100ms：车门 0x5、上锁 2、灯光 3、雨刮 1、电压 12.0V
-        0x110  Light_Cmd   每 100ms：近光 2、亮度 80%
+超时模式用来观察：
+    停发 0.5 秒后 0x101 车速变成 0xFFFF（无效）
+    停发 0.5 秒后 0x201 扭矩限制回到 1000（100%）
 
-    同时接收并解析：
-        0x101  Body_GwStatus（网关汇总输出，CAN2）
-        0x201  PT_Cmd       （扭矩限制命令，CAN1）
-        0x123  网关转发测试帧
-
-注意：
-    - 运行前关闭 USB_CAN Tool，否则设备被占用
-    - Ctrl+C 退出
+运行前必须关闭 USB_CAN Tool。
 """
 
 import ctypes
@@ -34,8 +25,8 @@ import can_driver as cd
 
 DEV_TYPE = 4
 DEV_INDEX = 0
-CH_CAN1 = 0          # CH1
-CH_CAN2 = 1          # CH2
+CH_CAN1 = 0
+CH_CAN2 = 1
 TIMING_500K = (0x00, 0x1C)
 TIMING_125K = (0x03, 0x1C)
 PERIOD_MS = 100
@@ -47,19 +38,19 @@ def le16(v):
 
 def build_0x200(speed=6000, rpm=3000, gear=3, soc=80):
     d = [0] * 8
-    d[0:2] = le16(speed)          # 车速 ×0.01
-    d[2:4] = le16(rpm)            # 转速
-    d[4] = gear & 0x0F            # 档位
-    d[5] = soc & 0xFF             # SOC
+    d[0:2] = le16(speed)
+    d[2:4] = le16(rpm)
+    d[4] = gear & 0x0F
+    d[5] = soc & 0xFF
     return d
 
 
 def build_0x210(torque=0, limit=1000, temp_c=110, derate=100):
     d = [0] * 8
-    d[0:2] = le16(torque)         # 实际扭矩 ×0.1
-    d[2:4] = le16(limit)          # 扭矩上限 ×0.1
-    d[4] = (temp_c + 40) & 0xFF   # 温度 raw = 温度 + 40
-    d[5] = derate & 0xFF          # 降额系数
+    d[0:2] = le16(torque)
+    d[2:4] = le16(limit)
+    d[4] = (temp_c + 40) & 0xFF
+    d[5] = derate & 0xFF
     return d
 
 
@@ -96,6 +87,7 @@ def decode_0x201(data):
 
 
 def main():
+    timeout_test = "--timeout-test" in sys.argv
     dll = cd.load_dll()
 
     if dll.VCI_OpenDevice(DEV_TYPE, DEV_INDEX, 0) != 1:
@@ -126,9 +118,12 @@ def main():
     dll.VCI_ClearBuffer(DEV_TYPE, DEV_INDEX, CH_CAN2)
 
     print("模拟器已启动：")
+    if timeout_test:
+        print("  超时验证模式：发送 2 秒 -> 停止 2 秒 -> 循环")
+    else:
+        print("  普通模式：持续发送（Ctrl+C 退出）")
     print("  CH1 500k : 发 0x200 / 0x210，收 0x201")
-    print("  CH2 125k : 发 0x100 / 0x110，收 0x101")
-    print("  Ctrl+C 退出\n")
+    print("  CH2 125k : 发 0x100 / 0x110，收 0x101\n")
 
     rx1 = (cd.VCI_CAN_OBJ * 256)()
     rx2 = (cd.VCI_CAN_OBJ * 256)()
@@ -153,16 +148,27 @@ def main():
                 out.append((o.ID, bytes(o.Data[:o.DataLen])))
         return out
 
+    start = time.time()
     last_print = 0.0
     last_101 = None
     last_201 = None
+    last_tx_state = None
 
     try:
         while True:
-            send(CH_CAN1, 0x200, build_0x200())
-            send(CH_CAN1, 0x210, build_0x210())
-            send(CH_CAN2, 0x100, build_0x100())
-            send(CH_CAN2, 0x110, build_0x110())
+            elapsed = time.time() - start
+
+            if timeout_test:
+                phase = elapsed % 4.0
+                tx_on = phase < 2.0
+            else:
+                tx_on = True
+
+            if tx_on:
+                send(CH_CAN1, 0x200, build_0x200())
+                send(CH_CAN1, 0x210, build_0x210())
+                send(CH_CAN2, 0x100, build_0x100())
+                send(CH_CAN2, 0x110, build_0x110())
 
             for cid, data in recv(CH_CAN1, rx1, 0):
                 if cid == 0x201:
@@ -174,12 +180,23 @@ def main():
             now = time.time()
             if now - last_print >= 0.5:
                 last_print = now
+                if timeout_test:
+                    state = "发送" if tx_on else "停止"
+                    if state != last_tx_state:
+                        print("\n===== 模拟器 %s =====" % state)
+                        last_tx_state = state
+
                 if last_101:
                     sp, door, light, cnt = last_101
-                    print("0x101  speed=%d.%02d km/h  door=0x%X  light=0x%X  cnt=%d"
-                          % (sp // 100, sp % 100, door, light, cnt))
+                    if sp == 0xFFFF:
+                        sp_txt = "INVALID"
+                    else:
+                        sp_txt = "%d.%02d km/h" % (sp // 100, sp % 100)
+                    print("0x101  speed=%-10s door=0x%X  light=0x%X  cnt=%d"
+                          % (sp_txt, door, light, cnt))
                 else:
                     print("0x101  未收到")
+
                 if last_201 is not None:
                     print("0x201  torque_limit=%d (%.1f%%)"
                           % (last_201, last_201 / 10.0))
